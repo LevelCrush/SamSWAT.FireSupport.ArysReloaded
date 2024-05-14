@@ -50,7 +50,10 @@ namespace SamSWAT.FireSupport.ArysReloaded.Patches
             {
                 return false;
             }
-
+            
+            
+            
+            
             var player = gameWorld.RegisteredPlayers[0];
             if (!(player is LocalPlayer))
             {

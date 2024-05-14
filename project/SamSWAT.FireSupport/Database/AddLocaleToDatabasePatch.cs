@@ -1,11 +1,13 @@
-﻿using Aki.Reflection.Patching;
-using Aki.Reflection.Utils;
-using SamSWAT.FireSupport.ArysReloaded.Unity;
+﻿using SamSWAT.FireSupport.ArysReloaded.Unity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Aki.Reflection.Utils;
+using Comfort.Common;
+using StayInTarkov;
+using StayInTarkov.Networking;
 
 namespace SamSWAT.FireSupport.ArysReloaded.Database
 {
@@ -13,17 +15,18 @@ namespace SamSWAT.FireSupport.ArysReloaded.Database
     {
         protected override MethodBase GetTargetMethod()
         {
-            return PatchConstants.EftTypes.First(IsTargetType).GetMethod("GetLocalization");
+            return typeof(BackendServerConnection).GetMethod("GetLocalization");
         }
 
         private bool IsTargetType(Type t)
         {
-            return typeof(IBackEndSession).IsAssignableFrom(t) && t.IsAbstract;
+            return typeof(ISession).IsAssignableFrom(t) && t.IsAbstract;
         }
 
         [PatchPostfix]
         private static async void PatchPostfix(Task<Dictionary<string, string>> __result)
         {
+            
             var locales = await __result;
             locales.Add($"{ItemConstants.GAU8_AMMO_TPL} Name", "PGU-13/B HEI High Explosive Incendiary");
             locales.Add($"{ItemConstants.GAU8_AMMO_TPL} ShortName", "PGU-13/B HEI");

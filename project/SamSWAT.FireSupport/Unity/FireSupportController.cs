@@ -5,6 +5,10 @@ using EFT.UI.Gestures;
 using SamSWAT.FireSupport.ArysReloaded.Utils;
 using System.Collections;
 using System.Threading.Tasks;
+using Comfort.Common;
+using SamSWAT.FireSupport.ArysReloaded.SIT;
+using StayInTarkov;
+using StayInTarkov.Networking;
 using UnityEngine;
 
 namespace SamSWAT.FireSupport.ArysReloaded.Unity
@@ -16,7 +20,7 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
         private FireSupportAudio _audio;
         private FireSupportUI _ui;
         private FireSupportSpotter _spotter;
-        private GesturesMenu _gesturesMenu;
+        public GesturesMenu _gesturesMenu;
 
         public static FireSupportController Instance { get; private set; }
         public bool StrafeRequestAvailable => _requestAvailable && AvailableStrafeRequests > 0;
@@ -52,7 +56,16 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
                         StaticManager.BeginCoroutine(_spotter.SpotterSequence(ESupportType.Strafe, (b, startPos, endPos) =>
                         {
                             if (!b)
+                            {
+                               
                                 StaticManager.BeginCoroutine(StrafeRequest(startPos, endPos));
+                                StayInTarkovHelperConstants.Logger.LogInfo("Sending fire support packet for Strafing");
+                                var packet = new FireSupportPacket(Singleton<GameWorld>.Instance.MainPlayer.ProfileId);
+                                packet.Mode = "Strafe";
+                                packet.Vector1 = startPos;
+                                packet.Vector2 = endPos;
+                                GameClient.SendData(packet.Serialize());
+                            }
                         }));
                     }
                     break;
@@ -63,15 +76,25 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
                         StaticManager.BeginCoroutine(_spotter.SpotterSequence(ESupportType.Extract, (b, pos, rot) =>
                         {
                             if (!b)
+                            {
+                               
                                 StaticManager.BeginCoroutine(ExtractionRequest(pos, rot));
+                                StayInTarkovHelperConstants.Logger.LogInfo("Sending fire support packet for extraction");
+                                var packet = new FireSupportPacket(Singleton<GameWorld>.Instance.MainPlayer.ProfileId);
+                                packet.Mode = "Extraction";
+                                packet.Vector1 = pos;
+                                packet.Vector2 = rot;
+                                GameClient.SendData(packet.Serialize());
+                            }
                         }));
                     }
                     break;
             }
         }
 
-        private IEnumerator StrafeRequest(Vector3 strafeStartPos, Vector3 strafeEndPos)
+        public IEnumerator StrafeRequest(Vector3 strafeStartPos, Vector3 strafeEndPos)
         {
+            StayInTarkovHelperConstants.Logger.LogInfo("Fire Support: Performing Strafe request");
             var a10 = FireSupportPool.TakeFromPool(ESupportType.Strafe);
             var pos = (strafeStartPos + strafeEndPos) / 2;
             var dir = (strafeEndPos - strafeStartPos).normalized;
@@ -83,8 +106,9 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
             a10.ProcessRequest(pos, dir, Vector3.zero);
         }
 
-        private IEnumerator ExtractionRequest(Vector3 position, Vector3 rotation)
+        public IEnumerator ExtractionRequest(Vector3 position, Vector3 rotation)
         {
+            StayInTarkovHelperConstants.Logger.LogInfo("Fire Support: Performing Extraction request");
             var uh60 = FireSupportPool.TakeFromPool(ESupportType.Extract);
             AvailableExtractRequests--;
             _requestAvailable = false;

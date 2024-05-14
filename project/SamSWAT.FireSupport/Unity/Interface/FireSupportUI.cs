@@ -5,6 +5,7 @@ using EFT.UI.Gestures;
 using SamSWAT.FireSupport.ArysReloaded.Utils;
 using System;
 using System.Threading.Tasks;
+using Diz.Resources;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -29,6 +30,7 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
 
         public static async Task<FireSupportUI> Load(GesturesMenu gesturesMenu)
         {
+            
             Instance = Instantiate(await AssetLoader.LoadAssetAsync("assets/content/ui/firesupport_ui.bundle")).GetComponent<FireSupportUI>();
             Instance._player = Singleton<GameWorld>.Instance.MainPlayer;
 

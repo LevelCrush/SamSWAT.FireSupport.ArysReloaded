@@ -15,12 +15,14 @@ namespace SamSWAT.FireSupport.ArysReloaded.Database
     {
         protected override MethodBase GetTargetMethod()
         {
-            return ItemFactoryUtil.Type.GetField("ItemTemplates").FieldType.GetMethod("Init");
+            return typeof(ItemTemplates).GetMethod("Init");
         }
 
         [PatchPostfix]
         public static void PatchPostfix(Dictionary<string, ItemTemplate> __instance)
         {
+                
+            
             var t = PatchConstants.EftTypes.Single(x => x.GetField("SerializerSettings") != null);
             var converters = (JsonConverter[])t.GetField("Converters").GetValue(null);
 

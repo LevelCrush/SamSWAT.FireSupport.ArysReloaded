@@ -8,7 +8,7 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
 {
     public class SimpleSpinBlur : MonoBehaviour
     {
-        private Mesh _ssbMesh;
+        private UnityEngine.Mesh _ssbMesh;
         private Material _ssbMaterial;
         private Queue<Quaternion> rotationQueue = new Queue<Quaternion>();
         
