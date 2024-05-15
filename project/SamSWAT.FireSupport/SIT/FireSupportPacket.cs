@@ -95,7 +95,7 @@ namespace SamSWAT.FireSupport.ArysReloaded.SIT
             {
                 // at this point. This should not be a thing. But just in case.
                 StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(FireSupportPacket)}: Fire Support was not initialized. Initializing");
-                FireSupportHelper.InitController();
+                await FireSupportHelper.InitController();
                 StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(FireSupportPacket)}: Fire Support is done initializing");
             }
             
@@ -104,7 +104,7 @@ namespace SamSWAT.FireSupport.ArysReloaded.SIT
                 case "Ready":
                 {
                     StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(FireSupportPacket)}: Telling the team we are ready for fire support");
-                    FireSupportHelper.InitController();
+                    await FireSupportHelper.InitController();
                     break;
                 }
                 case "Extraction":

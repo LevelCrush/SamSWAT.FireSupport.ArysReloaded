@@ -43,6 +43,7 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
             if (!FireSupportHelper.DoneFirstVoicer)
             {
                 FireSupportHelper.DoneFirstVoicer = true;
+                FireSupportHelper.SendReadyPacket();
                 Instance._audio.PlayVoiceover(EVoiceoverType.StationReminder);
             }
 
@@ -172,6 +173,11 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
 
         private void OnDestroy()
         {
+            StayInTarkovHelperConstants.Logger.LogInfo("Fire Support Controller is destroying");
+            FireSupportHelper.GestureMenu = null;
+            FireSupportHelper.IsInit = false;
+            FireSupportHelper.DoneFirstVoicer = false;
+            FireSupportHelper.FireSupportController = null;
             AssetLoader.UnloadAllBundles();
             _ui.SupportRequested -= OnSupportRequested;
             StaticManager.KillCoroutine(ref _timerCoroutine);

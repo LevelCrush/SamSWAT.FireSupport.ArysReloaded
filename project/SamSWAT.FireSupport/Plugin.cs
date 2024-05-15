@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace SamSWAT.FireSupport.ArysReloaded
 {
-    [BepInPlugin("com.SamSWAT.FireSupport.ArysReloaded", "SamSWAT.FireSupport.ArysReloaded", "2.2.4")]
+    [BepInPlugin("com.SamSWAT.FireSupport.ArysReloaded", "SamSWAT.FireSupport.ArysReloaded", "2.2.45")]
     public class Plugin : BaseUnityPlugin
     {
         public static string Directory;
@@ -28,6 +28,7 @@ namespace SamSWAT.FireSupport.ArysReloaded
             Directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/";
             new GesturesMenuPatch().Enable();
             new FireSupportNetworkPacketPatch().Enable();
+            new RaidEndPatch().Enable();
             new AddItemToDatabasePatch().Enable();
             new AddLocaleToDatabasePatch().Enable();
             new Utils.ItemFactoryUtil().Enable();

@@ -158,6 +158,7 @@
     <Compile Include="Database\AddItemToDatabasePatch.cs" />
     <Compile Include="Patches\GesturesMenuPatch.cs" />
     <Compile Include="Patches\FireSupportNetworkPacketPatch.cs" />
+    <Compile Include="Patches\RaidEndPatch.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SIT\FireSupportPacket.cs" />

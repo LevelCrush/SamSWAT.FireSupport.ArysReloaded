@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Comfort.Common;
 using EFT;
 using EFT.InputSystem;
@@ -20,22 +21,24 @@ namespace SamSWAT.FireSupport.ArysReloaded.Utils
         
         public static GesturesMenu GestureMenu { get; set; }
         
-        public static async void InitController()
+        public static FireSupportController FireSupportController { get; set; }
+        
+        public static async Task<FireSupportController> InitController()
         {
-            FireSupportHelper.SendReadyPacket();
+       
             if (!FireSupportHelper.IsInit)
             {
                 var owner = Singleton<GameWorld>.Instance.MainPlayer.GetComponent<GamePlayerOwner>();
-                var fireSupportController = await FireSupportController.Init(FireSupportHelper.GestureMenu);
+                FireSupportHelper.FireSupportController = await FireSupportController.Init(FireSupportHelper.GestureMenu);
                 
-                Traverse.Create(owner).Field<List<InputNode>>("_children").Value.Add(fireSupportController);
+                Traverse.Create(owner).Field<List<InputNode>>("_children").Value.Add( FireSupportHelper.FireSupportController);
                 var gesturesBindPanel =
                     FireSupportHelper.GestureMenu.gameObject.GetComponentInChildren<GesturesBindPanel>(true);
                 gesturesBindPanel.transform.localPosition = new Vector3(0, -530, 0);
                 FireSupportHelper.IsInit = true;
-                
-                
             }
+
+            return FireSupportHelper.FireSupportController;
         }
 
         public static void SendReadyPacket()

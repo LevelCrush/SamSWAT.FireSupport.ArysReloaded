@@ -14,21 +14,29 @@ namespace SamSWAT.FireSupport.ArysReloaded.Utils
 		{
 			string bundlePath = bundleName;
 			bundleName = Regex.Match(bundleName, @"[^//]*$").Value;
-
-			if (LoadedBundles.TryGetValue(bundleName, out var bundle))
-				return bundle;
-
-			var bundleRequest = AssetBundle.LoadFromFileAsync(Plugin.Directory + bundlePath);
-
-			while (!bundleRequest.isDone)
-				await Task.Yield();
-
-			var requestedBundle = bundleRequest.assetBundle;
-
-			if (requestedBundle != null)
+			if (!LoadedBundles.ContainsKey(bundleName))
 			{
-				LoadedBundles.Add(bundleName, requestedBundle);
-				return requestedBundle;
+				
+
+				if (LoadedBundles.TryGetValue(bundleName, out var bundle))
+					return bundle;
+
+				var bundleRequest = AssetBundle.LoadFromFileAsync(Plugin.Directory + bundlePath);
+
+				while (!bundleRequest.isDone)
+					await Task.Yield();
+
+				var requestedBundle = bundleRequest.assetBundle;
+
+				if (requestedBundle != null)
+				{
+					LoadedBundles.Add(bundleName, requestedBundle);
+					return requestedBundle;
+				}
+			}
+			else
+			{
+				return LoadedBundles[bundleName];
 			}
 
 			Plugin.LogSource.LogError($"Can't load bundle: {bundlePath} (does it exist?), unknown error.");

@@ -15,6 +15,7 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
 
         public static async Task LoadBundlesAndCreatePools()
         {
+            
             var a10 = (await AssetLoader.LoadAssetAsync("assets/content/vehicles/a10_warthog.bundle")).GetComponent<A10Behaviour>();
             var uh60 = (await AssetLoader.LoadAssetAsync("assets/content/vehicles/uh60_blackhawk.bundle")).GetComponent<UH60Behaviour>();
             var poolTransform = new GameObject("FireSupportPool").transform;

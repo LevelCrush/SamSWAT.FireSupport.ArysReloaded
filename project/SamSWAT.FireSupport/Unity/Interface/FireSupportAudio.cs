@@ -1,6 +1,7 @@
 ﻿using Comfort.Common;
 using SamSWAT.FireSupport.ArysReloaded.Utils;
 using System.Threading.Tasks;
+using StayInTarkov;
 using UnityEngine;
 
 namespace SamSWAT.FireSupport.ArysReloaded.Unity
@@ -28,7 +29,13 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
 
         public static async Task<FireSupportAudio> Load()
         {
-            Instance = await AssetLoader.LoadAssetAsync<FireSupportAudio>("assets/content/ui/firesupport_audio.bundle");
+            if (Instance == null)
+            {
+                StayInTarkovHelperConstants.Logger.LogInfo($"Fire Support has already loaded the audio bundle");
+                Instance = await AssetLoader.LoadAssetAsync<FireSupportAudio>(
+                    "assets/content/ui/firesupport_audio.bundle");
+            }
+
             return Instance;
         }
 
@@ -39,6 +46,7 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
             switch (voiceoverType)
             {
                 case EVoiceoverType.StationReminder:
+                
                     voAudioClip = stationReminder[Random.Range(0, stationReminder.Length)];
                     break;
                 case EVoiceoverType.StationAvailable:

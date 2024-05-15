@@ -11,7 +11,7 @@ using System.Reflection;
 using SamSWAT.FireSupport.ArysReloaded.Utils;
 using StayInTarkov;
 using UnityEngine;
-using ModulePatch = Aki.Reflection.Patching.ModulePatch;
+using ModulePatch = StayInTarkov.ModulePatch;
 
 namespace SamSWAT.FireSupport.ArysReloaded.Patches
 {
@@ -22,7 +22,7 @@ namespace SamSWAT.FireSupport.ArysReloaded.Patches
             return typeof(GesturesMenu).GetMethod(nameof(GesturesMenu.Init));
         }
 
-        [Aki.Reflection.Patching.PatchPostfix]
+        [PatchPostfix]
         public static async void PatchPostfix(GesturesMenu __instance)
         {
             if (FireSupportHelper.GestureMenu == null)
@@ -37,7 +37,7 @@ namespace SamSWAT.FireSupport.ArysReloaded.Patches
                 return;
             }
             
-            FireSupportHelper.InitController();
+            await FireSupportHelper.InitController();
             
         }
 
