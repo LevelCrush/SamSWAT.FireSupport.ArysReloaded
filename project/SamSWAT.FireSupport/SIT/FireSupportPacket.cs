@@ -19,7 +19,12 @@ namespace SamSWAT.FireSupport.ArysReloaded.SIT
         public string Mode { get; set;  }
         public Vector3 Vector1 { get; set; }
         public Vector3 Vector2 { get; set; }
-        
+
+
+        public FireSupportPacket()
+        {
+        }
+
         public FireSupportPacket(string profileId) : base(new string(profileId.ToCharArray()), nameof(FireSupportPacket))
         {
             Mode = "Strafe";
