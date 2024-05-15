@@ -3,12 +3,16 @@ using System.IO;
 using System.Text;
 using Comfort.Common;
 using EFT;
+using EFT.UI;
+using EFT.UI.Gestures;
 using Newtonsoft.Json;
 using SamSWAT.FireSupport.ArysReloaded.Unity;
+using SamSWAT.FireSupport.ArysReloaded.Utils;
 using StayInTarkov;
 using StayInTarkov.Coop.Components.CoopGameComponents;
 using StayInTarkov.Coop.NetworkPacket.Player;
 using StayInTarkov.Coop.Players;
+using StayInTarkov.Coop.SITGameModes;
 using UnityEngine;
 
 namespace SamSWAT.FireSupport.ArysReloaded.SIT
@@ -89,17 +93,20 @@ namespace SamSWAT.FireSupport.ArysReloaded.SIT
             // make sure fire suport controller is initialized 
             if (FireSupportController.Instance == null)
             {
-                StayInTarkovHelperConstants.Logger.LogInfo("FireSupportPacket did not find FireSupportController.");
-
-                // technically...no gesture menu 
-                // should be fine(i think)
-                await FireSupportController.Init(null);
-                
-                StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(FireSupportPacket)}: Done Init with FireSupportController");
+                // at this point. This should not be a thing. But just in case.
+                StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(FireSupportPacket)}: Fire Support was not initialized. Initializing");
+                FireSupportHelper.InitController();
+                StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(FireSupportPacket)}: Fire Support is done initializing");
             }
             
             switch (Mode)
             {
+                case "Ready":
+                {
+                    StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(FireSupportPacket)}: Telling the team we are ready for fire support");
+                    FireSupportHelper.InitController();
+                    break;
+                }
                 case "Extraction":
                 {
                     StayInTarkovHelperConstants.Logger.LogInfo($"{nameof(FireSupportPacket)}: Calling Extraction CoRoutine {Vector1} | {Vector2}");

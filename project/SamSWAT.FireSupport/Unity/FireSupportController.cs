@@ -40,7 +40,12 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
             WeaponClass.Init();
             Instance.AvailableStrafeRequests = Plugin.AmountOfStrafeRequests.Value;
             Instance.AvailableExtractRequests = Plugin.AmountOfExtractionRequests.Value;
-            Instance._audio.PlayVoiceover(EVoiceoverType.StationReminder);
+            if (!FireSupportHelper.DoneFirstVoicer)
+            {
+                FireSupportHelper.DoneFirstVoicer = true;
+                Instance._audio.PlayVoiceover(EVoiceoverType.StationReminder);
+            }
+
             Instance._ui.SupportRequested += Instance.OnSupportRequested;
             return Instance;
         }

@@ -1,5 +1,4 @@
-﻿using Aki.Reflection.Patching;
-using Comfort.Common;
+﻿using Comfort.Common;
 using EFT;
 using EFT.Airdrop;
 using EFT.InputSystem;
@@ -9,7 +8,10 @@ using SamSWAT.FireSupport.ArysReloaded.Unity;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using SamSWAT.FireSupport.ArysReloaded.Utils;
+using StayInTarkov;
 using UnityEngine;
+using ModulePatch = Aki.Reflection.Patching.ModulePatch;
 
 namespace SamSWAT.FireSupport.ArysReloaded.Patches
 {
@@ -20,19 +22,23 @@ namespace SamSWAT.FireSupport.ArysReloaded.Patches
             return typeof(GesturesMenu).GetMethod(nameof(GesturesMenu.Init));
         }
 
-        [PatchPostfix]
+        [Aki.Reflection.Patching.PatchPostfix]
         public static async void PatchPostfix(GesturesMenu __instance)
         {
+            if (FireSupportHelper.GestureMenu == null)
+            {
+                StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is storing a reference to The GestureMenu");
+                FireSupportHelper.GestureMenu = __instance;
+            }
+            
             if (!IsFireSupportAvailable())
             {
+                StayInTarkovHelperConstants.Logger.LogInfo("No firesupport available");
                 return;
             }
-
-            var owner = Singleton<GameWorld>.Instance.MainPlayer.GetComponent<GamePlayerOwner>();
-            var fireSupportController = await FireSupportController.Init(__instance);
-            Traverse.Create(owner).Field<List<InputNode>>("_children").Value.Add(fireSupportController);
-            var gesturesBindPanel = __instance.gameObject.GetComponentInChildren<GesturesBindPanel>(true);
-            gesturesBindPanel.transform.localPosition = new Vector3(0, -530, 0);
+            
+            FireSupportHelper.InitController();
+            
         }
 
         private static bool IsFireSupportAvailable()

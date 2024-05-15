@@ -177,6 +177,7 @@
     <Compile Include="Unity\Vehicles\A10Behaviour.cs" />
     <Compile Include="Unity\Vehicles\UH60Behaviour.cs" />
     <Compile Include="Utils\AccessToolsUtil.cs" />
+    <Compile Include="Utils\FireSupportHelper.cs" />
     <Compile Include="Utils\ItemFactoryUtil.cs" />
     <Compile Include="Utils\AssetLoader.cs" />
     <Compile Include="Utils\WeaponClass.cs" />
