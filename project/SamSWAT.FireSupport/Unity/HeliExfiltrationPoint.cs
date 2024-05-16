@@ -1,26 +1,35 @@
-﻿using Comfort.Common;
+﻿using System.Collections;
+using System.Linq;
+using System.Reflection;
+using Comfort.Common;
 using CommonAssets.Scripts.Game;
 using EFT;
 using EFT.UI;
-using System.Collections;
-using System.Linq;
-using System.Reflection;
 using UnityEngine;
 
 namespace SamSWAT.FireSupport.ArysReloaded.Unity
 {
     public class HeliExfiltrationPoint : MonoBehaviour, IPhysicsTrigger
     {
-        private float _timer;
-        public string Description => "HeliExfiltrationPoint";
+        private readonly MethodInfo _stopSession;
         private Coroutine _coroutine;
-        private MethodInfo _stopSession;
+        private float _timer;
 
         private HeliExfiltrationPoint()
         {
             var t = typeof(EndByExitTrigerScenario).GetNestedTypes().Single(x => x.IsInterface);
             _stopSession = t.GetMethod("StopSession");
         }
+
+        private void OnDestroy()
+        {
+            if (Singleton<GameUI>.Instantiated) Singleton<GameUI>.Instance.BattleUiPanelExitTrigger.Close();
+
+            if (_coroutine == null) return;
+            StopCoroutine(_coroutine);
+        }
+
+        public string Description => "HeliExfiltrationPoint";
 
         public void OnTriggerEnter(Collider other)
         {
@@ -30,22 +39,6 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
             _timer = Plugin.HelicopterExtractTime.Value;
             Singleton<GameUI>.Instance.BattleUiPanelExitTrigger.Show(_timer);
             _coroutine = StartCoroutine(Timer(player.ProfileId));
-        }
-
-        private IEnumerator Timer(string profileId)
-        {
-            while (_timer > 0)
-            {
-                _timer -= Time.deltaTime;
-                yield return null;
-            }
-
-            _stopSession.Invoke(Singleton<AbstractGame>.Instance, new object[]
-            {
-                profileId,
-                ExitStatus.Survived,
-                "UH-60 BlackHawk"
-            });
         }
 
         public void OnTriggerExit(Collider other)
@@ -60,15 +53,21 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
             StopCoroutine(_coroutine);
         }
 
-        private void OnDestroy()
+        private IEnumerator Timer(string profileId)
         {
-            if (Singleton<GameUI>.Instantiated)
+            while (_timer > 0)
             {
-                Singleton<GameUI>.Instance.BattleUiPanelExitTrigger.Close();
+                _timer -= Time.deltaTime;
+                yield return null;
             }
 
-            if (_coroutine == null) return;
-            StopCoroutine(_coroutine);
+
+            _stopSession.Invoke(Singleton<AbstractGame>.Instance, new object[]
+            {
+                profileId,
+                ExitStatus.Survived,
+                "UH-60 BlackHawk"
+            });
         }
     }
 }

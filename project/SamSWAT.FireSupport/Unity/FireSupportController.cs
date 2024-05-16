@@ -1,12 +1,12 @@
-﻿using EFT;
+﻿using System.Collections;
+using System.Threading.Tasks;
+using Comfort.Common;
+using EFT;
 using EFT.InputSystem;
 using EFT.UI;
 using EFT.UI.Gestures;
-using SamSWAT.FireSupport.ArysReloaded.Utils;
-using System.Collections;
-using System.Threading.Tasks;
-using Comfort.Common;
 using SamSWAT.FireSupport.ArysReloaded.SIT;
+using SamSWAT.FireSupport.ArysReloaded.Utils;
 using StayInTarkov;
 using StayInTarkov.Networking;
 using UnityEngine;
@@ -15,19 +15,34 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
 {
     public class FireSupportController : UIInputNode
     {
-        private bool _requestAvailable = true;
-        private Coroutine _timerCoroutine;
         private FireSupportAudio _audio;
-        private FireSupportUI _ui;
+        private GesturesMenu _gesturesMenu;
+        private bool _requestAvailable = true;
         private FireSupportSpotter _spotter;
-        public GesturesMenu _gesturesMenu;
+        private Coroutine _timerCoroutine;
+        private FireSupportUI _ui;
 
         public static FireSupportController Instance { get; private set; }
         public bool StrafeRequestAvailable => _requestAvailable && AvailableStrafeRequests > 0;
         public bool ExtractRequestAvailable => _requestAvailable && AvailableExtractRequests > 0;
-        public bool AnyRequestAvailable => _requestAvailable && (AvailableStrafeRequests > 0 || AvailableExtractRequests > 0);
+
+        public bool AnyRequestAvailable =>
+            _requestAvailable && (AvailableStrafeRequests > 0 || AvailableExtractRequests > 0);
+
         public int AvailableStrafeRequests { get; private set; }
         public int AvailableExtractRequests { get; private set; }
+
+        private void OnDestroy()
+        {
+            StayInTarkovHelperConstants.Logger.LogInfo("Fire Support Controller is destroying");
+            FireSupportHelper.GestureMenu = null;
+            FireSupportHelper.IsInit = false;
+            FireSupportHelper.DoneFirstVoicer = false;
+            FireSupportHelper.FireSupportController = null;
+            AssetLoader.UnloadAllBundles();
+            _ui.SupportRequested -= OnSupportRequested;
+            StaticManager.KillCoroutine(ref _timerCoroutine);
+        }
 
         public static async Task<FireSupportController> Init(GesturesMenu gesturesMenu)
         {
@@ -59,21 +74,24 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
                     if (StrafeRequestAvailable)
                     {
                         _gesturesMenu.Close();
-                        StaticManager.BeginCoroutine(_spotter.SpotterSequence(ESupportType.Strafe, (b, startPos, endPos) =>
-                        {
-                            if (!b)
+                        StaticManager.BeginCoroutine(_spotter.SpotterSequence(ESupportType.Strafe,
+                            (b, startPos, endPos) =>
                             {
-                               
-                                StaticManager.BeginCoroutine(StrafeRequest(startPos, endPos));
-                                StayInTarkovHelperConstants.Logger.LogInfo("Sending fire support packet for Strafing");
-                                var packet = new FireSupportPacket(Singleton<GameWorld>.Instance.MainPlayer.ProfileId);
-                                packet.Mode = "Strafe";
-                                packet.Vector1 = startPos;
-                                packet.Vector2 = endPos;
-                                GameClient.SendData(packet.Serialize());
-                            }
-                        }));
+                                if (!b)
+                                {
+                                    StaticManager.BeginCoroutine(StrafeRequest(startPos, endPos));
+                                    StayInTarkovHelperConstants.Logger.LogInfo(
+                                        "Sending fire support packet for Strafing");
+                                    var packet =
+                                        new FireSupportPacket(Singleton<GameWorld>.Instance.MainPlayer.ProfileId);
+                                    packet.Mode = "Strafe";
+                                    packet.Vector1 = startPos;
+                                    packet.Vector2 = endPos;
+                                    GameClient.SendData(packet.Serialize());
+                                }
+                            }));
                     }
+
                     break;
                 case ESupportType.Extract:
                     if (ExtractRequestAvailable)
@@ -83,9 +101,9 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
                         {
                             if (!b)
                             {
-                               
                                 StaticManager.BeginCoroutine(ExtractionRequest(pos, rot));
-                                StayInTarkovHelperConstants.Logger.LogInfo("Sending fire support packet for extraction");
+                                StayInTarkovHelperConstants.Logger.LogInfo(
+                                    "Sending fire support packet for extraction");
                                 var packet = new FireSupportPacket(Singleton<GameWorld>.Instance.MainPlayer.ProfileId);
                                 packet.Mode = "Extraction";
                                 packet.Vector1 = pos;
@@ -94,6 +112,7 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
                             }
                         }));
                     }
+
                     break;
             }
         }
@@ -120,6 +139,8 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
             _requestAvailable = false;
             _audio.PlayVoiceover(EVoiceoverType.StationExtractionRequest);
             yield return new WaitForSecondsRealtime(8f);
+
+            StayInTarkovHelperConstants.Logger.LogInfo($"Fire Support: Processing Helicopter Extraction {position}");
             uh60.ProcessRequest(position, Vector3.zero, rotation);
             _audio.PlayVoiceover(EVoiceoverType.SupportHeliArrivingToPickup);
             yield return new WaitForSecondsRealtime(35f + Plugin.HelicopterWaitTime.Value);
@@ -134,30 +155,22 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
             while (time > 0)
             {
                 time -= Time.deltaTime;
-                if (time < 0)
-                {
-                    time = 0;
-                }
+                if (time < 0) time = 0;
 
                 float minutes = Mathf.FloorToInt(time / 60);
                 float seconds = Mathf.FloorToInt(time % 60);
                 _ui.timerText.text = $"{minutes:00}.{seconds:00}";
                 yield return null;
             }
+
             _ui.timerText.enabled = false;
             _requestAvailable = true;
-            if (AnyRequestAvailable)
-            {
-                FireSupportAudio.Instance.PlayVoiceover(EVoiceoverType.StationAvailable);
-            }
+            if (AnyRequestAvailable) FireSupportAudio.Instance.PlayVoiceover(EVoiceoverType.StationAvailable);
         }
 
         public override ETranslateResult TranslateCommand(ECommand command)
         {
-            if (command == ECommand.MumbleToggle)
-            {
-                Debug.LogError("MUMBLE");
-            }
+            if (command == ECommand.MumbleToggle) Debug.LogError("MUMBLE");
 
             return ETranslateResult.Ignore;
         }
@@ -169,18 +182,6 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
         public override ECursorResult ShouldLockCursor()
         {
             return ECursorResult.Ignore;
-        }
-
-        private void OnDestroy()
-        {
-            StayInTarkovHelperConstants.Logger.LogInfo("Fire Support Controller is destroying");
-            FireSupportHelper.GestureMenu = null;
-            FireSupportHelper.IsInit = false;
-            FireSupportHelper.DoneFirstVoicer = false;
-            FireSupportHelper.FireSupportController = null;
-            AssetLoader.UnloadAllBundles();
-            _ui.SupportRequested -= OnSupportRequested;
-            StaticManager.KillCoroutine(ref _timerCoroutine);
         }
     }
 }

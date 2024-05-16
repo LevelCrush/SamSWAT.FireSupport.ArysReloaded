@@ -28,7 +28,7 @@ namespace SamSWAT.FireSupport.ArysReloaded
             Directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/";
             new GesturesMenuPatch().Enable();
             new FireSupportNetworkPacketPatch().Enable();
-            new RaidEndPatch().Enable();
+
             new AddItemToDatabasePatch().Enable();
             new AddLocaleToDatabasePatch().Enable();
             new Utils.ItemFactoryUtil().Enable();
