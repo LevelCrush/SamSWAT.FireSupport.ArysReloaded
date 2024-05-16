@@ -43,19 +43,6 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
         public void ReturnToPool()
         {
             gameObject.SetActive(false);
-
-            var sit_game = Singleton<ISITGame>.Instance as CoopSITGame;
-            if (sit_game == null)
-            {
-                StayInTarkovHelperConstants.Logger.LogInfo("SIT game is null. Cant continue");
-                return;
-            }
-
-            heli_point.Status = EExfiltrationStatus.NotPresent;
-            heli_point.Disable(EExfiltrationStatus.Pending);
-
-            StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is updating the exilftration ui to remove it");
-            sit_game.UpdateExfiltrationUi(heli_point, false, true);
         }
 
         private void CrossFadeAudio()
@@ -80,6 +67,20 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
             yield return new WaitForSeconds(waitTime);
             FireSupportAudio.Instance.PlayVoiceover(EVoiceoverType.SupportHeliHurry);
             yield return new WaitForSeconds(Plugin.HelicopterWaitTime.Value - waitTime);
+
+            StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is sending the helicopter away. Closing extract");
+            var sit_game = Singleton<ISITGame>.Instance as CoopSITGame;
+            if (sit_game != null)
+            {
+                heli_point.Status = EExfiltrationStatus.NotPresent;
+                heli_point.enabled = false;
+                //heli_point.Disable(EExfiltrationStatus.Pending); 
+
+                StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is updating the exilftration ui to remove it");
+                sit_game.UpdateExfiltrationUi(heli_point, false);
+            }
+
+
             helicopterAnimator.SetTrigger(FlyAway);
             Destroy(_extractionPoint);
             FireSupportAudio.Instance.PlayVoiceover(EVoiceoverType.SupportHeliLeavingNoPickup);
@@ -144,6 +145,8 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
             heli_point.Settings.Name = settings.Name;
             heli_point.Settings.EntryPoints = settings.EntryPoints;
             heli_point.Enable();
+            heli_point.enabled = true;
+
 
             StayInTarkovHelperConstants.Logger.LogInfo(
                 $"FireSupport after loading these settings \r\n{heli_point.Settings.ToPrettyJson()}");
