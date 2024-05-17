@@ -1,13 +1,13 @@
-﻿using Aki.Reflection.Patching;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using Aki.Reflection.Patching;
 using Aki.Reflection.Utils;
 using EFT.InventoryLogic;
 using Newtonsoft.Json;
 using SamSWAT.FireSupport.ArysReloaded.Unity;
 using SamSWAT.FireSupport.ArysReloaded.Utils;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 
 namespace SamSWAT.FireSupport.ArysReloaded.Database
 {
@@ -15,14 +15,12 @@ namespace SamSWAT.FireSupport.ArysReloaded.Database
     {
         protected override MethodBase GetTargetMethod()
         {
-            return typeof(ItemTemplates).GetMethod("Init");
+            return ItemFactoryUtil.Type.GetField("ItemTemplates").FieldType.GetMethod("Init");
         }
 
         [PatchPostfix]
         public static void PatchPostfix(Dictionary<string, ItemTemplate> __instance)
         {
-                
-            
             var t = PatchConstants.EftTypes.Single(x => x.GetField("SerializerSettings") != null);
             var converters = (JsonConverter[])t.GetField("Converters").GetValue(null);
 

@@ -135,7 +135,7 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
             }
 
 
-            var settings = new Settings7
+            var settings = new GClass1225
             {
                 Count = 0,
                 PlayersCount = 0,
