@@ -93,12 +93,20 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
 
         private void CreateExfilPoint()
         {
+            StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is grabbing the SIT Game");
+            var sit_game = Singleton<ISITGame>.Instance as CoopSITGame;
+            if (sit_game == null)
+            {
+                StayInTarkovHelperConstants.Logger.LogInfo("SIT game is null. Cant continue");
+                return;
+            }
+
             // _extractionPoint.AddComponent<HeliExfiltrationPoint>(); */
             StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is attempting to add the helicoper exfil");
             StayInTarkovHelperConstants.Logger.LogInfo("Attempt 15");
             _extractionPoint = new GameObject
             {
-                name = "HeliExfilPoint",
+                name = "Helicopter",
                 layer = 13,
                 transform =
                 {
@@ -109,13 +117,17 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
 
 
             StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is setting the colider for the zone");
+            StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is setting the colider for the zone");
             var extractionCollider = _extractionPoint.AddComponent<BoxCollider>();
             extractionCollider.size = new Vector3(16.5f, 20f, 15);
+            extractionCollider.transform.position = _extractionPoint.transform.position;
             extractionCollider.isTrigger = true;
 
 
             StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is attempting to add exfil point to object");
             heli_point = _extractionPoint.AddComponent<ExfiltrationPoint>();
+
+
             if (heli_point == null)
             {
                 StayInTarkovHelperConstants.Logger.LogInfo("FireSupport helicopter extraction point is not defined");
@@ -128,7 +140,7 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
                 Count = 0,
                 PlayersCount = 0,
                 Chance = 100,
-                EntryPoints = "",
+                EntryPoints = sit_game.PlayerOwner.Player.Profile.Info.EntryPoint.ToLower(),
                 MinTime = 0,
                 MaxTime = 0,
                 ExfiltrationTime = 8,
@@ -144,29 +156,27 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
             heli_point.LoadSettings(settings, true);
             heli_point.Settings.Name = settings.Name;
             heli_point.Settings.EntryPoints = settings.EntryPoints;
-            heli_point.Enable();
-            heli_point.enabled = true;
+            heli_point.transform.position = _extractionPoint.transform.position;
+            heli_point.transform.eulerAngles = _extractionPoint.transform.eulerAngles;
+            //  heli_point.transform.localScale = new Vector3(16.5f, 20f, 15);
+            //var heli_box_colider = heli_point.GetComponent<BoxCollider>();
+            // heli_box_colider.isTrigger = true;
+            // heli_box_colider.enabled = true;
 
 
             StayInTarkovHelperConstants.Logger.LogInfo(
                 $"FireSupport after loading these settings \r\n{heli_point.Settings.ToPrettyJson()}");
 
-            heli_point.SetStatusLogged(EExfiltrationStatus.NotPresent, "FireSupport.HeliExtract");
+            //heli_point.SetStatusLogged(EExfiltrationStatus.RegularMode, "FireSupport.HeliExtract");
 
             StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is hooking events for the exfil");
             heli_point.OnStartExtraction += OnExtract;
             heli_point.OnStatusChanged += OnStatusChanged;
             heli_point.OnCancelExtraction += OnCancel;
+
+
             StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is adding to the exfiltration controller ");
             ExfiltrationControllerClass.Instance.ExfiltrationPoints.AddItem(heli_point);
-
-            StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is grabbing the SIT Game");
-            var sit_game = Singleton<ISITGame>.Instance as CoopSITGame;
-            if (sit_game == null)
-            {
-                StayInTarkovHelperConstants.Logger.LogInfo("SIT game is null. Cant continue");
-                return;
-            }
 
 
             StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is attempting to access the timer panel");
@@ -185,9 +195,9 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
             StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is starting extraction");
             var target_method = typeof(CoopSITGame).GetMethod("ExfiltrationPoint_OnStartExtraction",
                 BindingFlags.NonPublic | BindingFlags.Instance);
-
+            StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is invoking the start of extraction ");
             object[] param_args = { point, player };
-            target_method.Invoke(Singleton<CoopSITGame>.Instance, param_args);
+            target_method.Invoke(Singleton<ISITGame>.Instance, param_args);
         }
 
         private void OnCancel(ExfiltrationPoint point, Player player)
@@ -197,7 +207,9 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
                 BindingFlags.NonPublic | BindingFlags.Instance);
 
             object[] param_args = { point, player };
-            target_method.Invoke(Singleton<CoopSITGame>.Instance, param_args);
+
+            StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is invoking the cancelation of extraction ");
+            target_method.Invoke(Singleton<ISITGame>.Instance, param_args);
         }
 
         private void OnStatusChanged(ExfiltrationPoint point, EExfiltrationStatus prevStatus)
@@ -207,7 +219,9 @@ namespace SamSWAT.FireSupport.ArysReloaded.Unity
                 BindingFlags.NonPublic | BindingFlags.Instance);
 
             object[] param_args = { point, prevStatus };
-            target_method.Invoke(Singleton<CoopSITGame>.Instance, param_args);
+
+            StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is invoking the status change of extraction ");
+            target_method.Invoke(Singleton<ISITGame>.Instance, param_args);
         }
     }
 }
