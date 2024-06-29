@@ -1,10 +1,16 @@
-﻿using BepInEx;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using SamSWAT.FireSupport.ArysReloaded.Database;
 using SamSWAT.FireSupport.ArysReloaded.Patches;
-using System.IO;
-using System.Reflection;
+using SamSWAT.FireSupport.ArysReloaded.SIT;
+using SamSWAT.FireSupport.ArysReloaded.Utils;
+using StayInTarkov;
 
 namespace SamSWAT.FireSupport.ArysReloaded
 {
@@ -27,11 +33,23 @@ namespace SamSWAT.FireSupport.ArysReloaded
             LogSource = Logger;
             Directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/";
             new GesturesMenuPatch().Enable();
-            new FireSupportNetworkPacketPatch().Enable();
+            // new FireSupportNetworkPacketPatch().Enable();
 
             new AddItemToDatabasePatch().Enable();
             new AddLocaleToDatabasePatch().Enable();
-            new Utils.ItemFactoryUtil().Enable();
+            new ItemFactoryUtil().Enable();
+
+            // patch network packets 
+            StayInTarkovHelperConstants.Logger.LogInfo("Trying to patch in FireSupport Network Packet");
+            var sit_types =
+                typeof(StayInTarkovHelperConstants).GetField("_sitTypes", BindingFlags.Static | BindingFlags.NonPublic);
+
+            StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is patching in FireSupportPacket");
+            var new_types = new List<Type>();
+            new_types.Add(typeof(FireSupportPacket));
+            var merged = StayInTarkovHelperConstants.SITTypes.Union(new_types).ToArray();
+            sit_types.SetValue(null, merged);
+            StayInTarkovHelperConstants.Logger.LogInfo("FireSupport is finished patching FireSupportPacket");
 
             Enabled = Config.Bind(
                 "",
@@ -43,7 +61,7 @@ namespace SamSWAT.FireSupport.ArysReloaded
                 "Amount of autocannon strafe requests",
                 2,
                 new ConfigDescription("",
-                new AcceptableValueRange<int>(0, 10)));
+                    new AcceptableValueRange<int>(0, 10)));
             AmountOfExtractionRequests = Config.Bind(
                 "Main Settings",
                 "Amount of helicopter extraction requests",
@@ -73,13 +91,13 @@ namespace SamSWAT.FireSupport.ArysReloaded
                 "Cooldown between support requests",
                 300,
                 new ConfigDescription("Seconds",
-                new AcceptableValueRange<int>(60, 3600)));
+                    new AcceptableValueRange<int>(60, 3600)));
             VoiceoverVolume = Config.Bind(
                 "Sound Settings",
                 "Voiceover volume",
                 90,
                 new ConfigDescription("",
-                new AcceptableValueRange<int>(0, 100)));
+                    new AcceptableValueRange<int>(0, 100)));
         }
     }
 }
